@@ -1,54 +1,33 @@
-import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:login_ui_app/home_screen.dart';
-import 'package:login_ui_app/register_screen.dart';
+import 'package:login_ui_app/main.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
-  runApp(const MyApp());
-}
-
-class MyApp extends StatefulWidget {
-  const MyApp({super.key});
+class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({super.key});
 
   @override
-  State<MyApp> createState() => _MyAppState();
+  State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _MyAppState extends State<MyApp> {
-  @override
-  Widget build(BuildContext context) {
-    return const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: LoginScreen(),
-    );
-  }
-}
-
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
-
-  @override
-  State<LoginScreen> createState() => _LoginScreenState();
-}
-
-class _LoginScreenState extends State<LoginScreen> {
+class _RegisterScreenState extends State<RegisterScreen> {
   TextEditingController email = TextEditingController();
   TextEditingController password = TextEditingController();
   FirebaseAuth auth = FirebaseAuth.instance;
+  CollectionReference userRef = FirebaseFirestore.instance.collection("users");
 
-  login(context) async {
+  register(context) async {
     try {
-      var result = await auth.signInWithEmailAndPassword(
+      var userCredential = await auth.createUserWithEmailAndPassword(
           email: email.text, password: password.text);
-      Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const HomeScreen(),
-          ),
-          (route) => false);
+      userRef.add({"email": email.text, "password": password.text}).then(
+          (value) => Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const HomeScreen(),
+              ),
+              (route) => false));
     } catch (e) {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(e.toString())));
@@ -80,7 +59,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     bottom: 20,
                   ),
                   child: Text(
-                    "Login now",
+                    "Register now",
                     style: TextStyle(
                       fontSize: 36,
                       fontWeight: FontWeight.w700,
@@ -133,25 +112,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                 ),
-                //Forgot password
-                Padding(
-                  padding: const EdgeInsets.only(
-                    top: 10,
-                    bottom: 20,
-                  ),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: InkWell(
-                      onTap: () {},
-                      child: const Text(
-                        "Forgot password?",
-                        style: TextStyle(
-                          color: Color(0xFFDA3340),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
+                const SizedBox(height: 20),
                 //Login button
                 Row(
                   children: [
@@ -163,12 +124,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         onPressed: () {
                           //call login function here
-                          login(context);
+                          register(context);
                         },
                         child: const Padding(
                           padding: EdgeInsets.all(18),
                           child: Text(
-                            "LOGIN",
+                            "SIGN UP",
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 20,
@@ -185,18 +146,18 @@ class _LoginScreenState extends State<LoginScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text("Don't have an account?"),
+                    const Text("Already have an account?"),
                     TextButton(
                       onPressed: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const RegisterScreen(),
+                            builder: (context) => const LoginScreen(),
                           ),
                         );
                       },
                       child: const Text(
-                        "Register",
+                        "Login",
                         style: TextStyle(
                           color: Color(0xFFDA3340),
                         ),
